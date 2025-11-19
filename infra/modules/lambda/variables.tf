@@ -35,3 +35,13 @@ variable "environment" {
   description = "Environment variables for Lambda"
   default     = {}
 }
+variable "region" {
+  description = "AWS region for deployment"
+  type        = string
+  default     = "eu-west-1"
+}
+
+variable "deploy_environment" {
+  type        = string
+  description = "Deployment environment name like dev/test/prod"
+}

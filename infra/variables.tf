@@ -45,3 +45,8 @@ variable "lambda_function_name" {
   type        = string
   default     = "novabank-api"
 }
+variable "environment" {
+  type        = string
+  description = "Deployment environment"
+  default     = "dev"
+}

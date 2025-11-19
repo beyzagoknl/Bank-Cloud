@@ -37,3 +37,28 @@ resource "aws_lambda_permission" "apigw_invoke" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.this.execution_arn}/*/*"
 }
+resource "aws_cloudwatch_log_group" "api_access_logs" {
+  name              = "/aws/http-api/${var.project_name}"
+  retention_in_days = 90
+}
+
+resource "aws_apigatewayv2_stage" "default" {
+  api_id = aws_apigatewayv2_api.this.id
+  name   = "$default"
+
+  auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_access_logs.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      httpMethod     = "$context.httpMethod"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+      responseLength = "$context.responseLength"
+      ip             = "$context.identity.sourceIp"
+      userAgent      = "$context.identity.userAgent"
+      requestTime    = "$context.requestTime"
+    })
+  }
+}
