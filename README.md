@@ -82,5 +82,3 @@ terraform output
         | returns JSON      | queries DB       | stores data
         v                   v                  v
       Client <----------- Health Check <---- Database
-
-# Bank-Cloud
