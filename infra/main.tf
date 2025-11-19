@@ -15,6 +15,16 @@ terraform {
 
 provider "aws" {
   region = var.region
+
+  default_tags {
+    tags = {
+      Project      = var.project_name
+      Environment  = var.environment  
+      Owner        = "squad-meso"
+      CostCenter   = "novabank"
+      ManagedBy    = "terraform"
+    }
+  }
 }
 
 # VPC + Security Groups
@@ -43,17 +53,20 @@ module "rds" {
 module "lambda" {
   source = "./modules/lambda"
 
-  project_name  = var.project_name
-  function_name = var.lambda_function_name
-  subnet_ids    = module.vpc.private_subnet_ids
+  project_name       = var.project_name
+  function_name      = var.lambda_function_name
+  subnet_ids         = module.vpc.private_subnet_ids
   security_group_ids = [module.vpc.lambda_sg_id]
+  region             = var.region
 
   environment = {
-    DB_HOST     = module.rds.endpoint
-    DB_NAME     = var.db_name
-    DB_USER     = var.db_username
-    DB_PASSWORD = var.db_password
+    DB_HOST           = module.rds.endpoint
+    DB_NAME           = var.db_name
+    DB_USER           = var.db_username
+    DB_PASSWORD_PARAM = aws_ssm_parameter.db_password.name
   }
+
+  deploy_environment = var.environment  # BURADA DEV/PROD DEĞİŞKENİNİ VER
 }
 
 # API Gateway HTTP API
@@ -69,4 +82,16 @@ module "apigw" {
 module "logging" {
   source       = "./modules/logging"
   project_name = var.project_name
+}
+# Store DB password in SSM Parameter Store
+resource "aws_ssm_parameter" "db_password" {
+  name        = "/novabank/${var.environment}/db_password"
+  type        = "SecureString"
+  value       = var.db_password
+  description = "NovaBank DB password"
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+  }
 }

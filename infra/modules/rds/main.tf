@@ -24,7 +24,11 @@ resource "aws_db_instance" "this" {
   storage_encrypted       = true
   backup_retention_period = var.backup_retention_days
   deletion_protection     = false
-
+  enabled_cloudwatch_logs_exports = [
+    "postgresql",
+    "upgrade"
+  ]
+  performance_insights_enabled = false
   auto_minor_version_upgrade = true
   copy_tags_to_snapshot      = true
 

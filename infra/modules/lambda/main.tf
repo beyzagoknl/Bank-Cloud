@@ -1,3 +1,5 @@
+data "aws_caller_identity" "this" {}
+
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/src"
@@ -66,4 +68,21 @@ resource "aws_lambda_function" "this" {
   tags = {
     Project = var.project_name
   }
+}
+
+resource "aws_iam_role_policy" "lambda_ssm" {
+  name = "${var.project_name}-lambda-ssm"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "ssm:GetParameter",
+        "ssm:GetParameters"
+      ]
+      Resource = "arn:aws:ssm:${var.region}:${data.aws_caller_identity.this.account_id}:parameter/novabank/${var.deploy_environment}/*"
+    }]
+  })
 }
