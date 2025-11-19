@@ -66,7 +66,7 @@ module "lambda" {
     DB_PASSWORD_PARAM = aws_ssm_parameter.db_password.name
   }
 
-  deploy_environment = var.environment  # BURADA DEV/PROD DEĞİŞKENİNİ VER
+  deploy_environment = var.environment  
 }
 
 # API Gateway HTTP API

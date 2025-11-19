@@ -1,36 +1,46 @@
-# Welcome to the NovaBank Cloud PoC
+# NovaBank Cloud PoC (AWS + Terraform)
 
-This repository contains a small demonstration application built for NovaBank as part of their first steps into the public cloud.
+This repository contains a lightweight **Proof of Concept (PoC)** environment designed to help **NovaBank** begin its cloud journey on AWS using fully automated **Infrastructure as Code (IaC)**.
 
-The purpose of this PoC is simple:
+The PoC demonstrates:
 
-- expose a minimal **health check API**,
-- run on fully automated **AWS infrastructure**,
-- demonstrate **VPC-isolated deployments**,
-- centralize application logs, and  
-- show how NovaBank can confidently begin its cloud journey.
+- A minimal **Health Check API**
+- **VPC-isolated** application components
+- A secure **PostgreSQL RDS** database
+- A serverless **Lambda-based** compute layer
+- Centralized **logging and observability** (CloudWatch + S3)
+- Secure secret handling using **SSM Parameter Store**
 
-This is a lightweight, low-cost, fully Infrastructure-as-Code (IaC) proof of concept — not a production system.
-
-- API Gateway (HTTP API)
-- AWS Lambda Function
-- PostgreSQL RDS (Free Tier)
-- Private VPC & Subnets
-- Centralized logging (S3 + CloudWatch)
-
-# Bank-Cloud# NovaBank Cloud PoC (AWS + Terraform)
-
-This repository contains a minimal Proof of Concept (PoC) for deploying NovaBank’s first cloud environment on AWS using Terraform.  
-The PoC includes:
-
-- API Gateway (HTTP API)
-- Lambda Function
-- PostgreSQL RDS (Free Tier)
-- Private VPC & Subnets
-- Central centralized logging (CloudWatch + S3)
-- Fully automated Infrastructure as Code (IaC)
+This is intentionally simple, low-cost, and **not a production system**.
 
 ---
+## Architecture Overview
+
+This PoC deploys:
+
+- **Amazon API Gateway (HTTP API)**  
+- **AWS Lambda (Node.js 18)**  
+- **Amazon RDS for PostgreSQL** (Free Tier–eligible)
+- A private **VPC with two subnets**
+- **CloudWatch Logs** (400-day retention)
+- **S3 Logging Bucket** (encrypted, lifecycle-enabled)
+
+All secrets, including the database password, are stored in **SSM Parameter Store (SecureString)**.
+
+---
+
+## Security Features
+
+- RDS and Lambda deployed in **private subnets**
+- **Security groups** follow least-privilege rules
+- Database password stored in **SSM**, not in plaintext Λambda environment variables
+- S3 logging bucket:
+  - Server-side encryption
+  - Public access blocked
+  - Lifecycle configuration enabled
+- IAM roles use minimal permissions
+- CloudWatch log retention: **400 days**
+- Uniform tagging applied through Terraform `default_tags`
 
 ## 1. Requirements
 
@@ -51,6 +61,7 @@ brew install node
 export TF_VAR_db_username="novabank_master"
 export TF_VAR_db_password="NovaBank123!"
 export TF_VAR_region="eu-central-1"
+export TF_VAR_environment="dev"
 
 cd infra
 terraform init
@@ -79,6 +90,6 @@ terraform output
 | (HTTP API)    |->| index.handler  |->| PostgreSQL  | | CloudWatch     |
 +-------+-------+  +--------+-------+  +------+------+ +----------------+
         |                   |                  |
-        | returns JSON      | queries DB       | stores data
+        | Returns JSON      | Queries DB       | Stores Logs
         v                   v                  v
       Client <----------- Health Check <---- Database
